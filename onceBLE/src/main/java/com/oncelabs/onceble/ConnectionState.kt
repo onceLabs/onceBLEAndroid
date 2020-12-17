@@ -1,4 +1,4 @@
-package com.onceblabs.onceble
+package com.oncelabs.onceble
 
 enum class ConnectionState {
     connecting,
