@@ -1,4 +1,4 @@
-package com.oncelabs.onceble
+package com.oncelabs.onceble.Core.Central
 
 data class OBConnectionOptions(
     var timeout: Int,

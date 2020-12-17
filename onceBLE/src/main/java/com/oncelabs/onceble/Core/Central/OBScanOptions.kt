@@ -1,4 +1,4 @@
-package com.oncelabs.onceble
+package com.oncelabs.onceble.Core.Central
 
 import android.os.ParcelUuid
 

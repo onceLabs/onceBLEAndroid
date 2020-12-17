@@ -1,4 +1,4 @@
-package com.oncelabs.onceble
+package com.oncelabs.onceble.Core.Central
 
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.ParcelUuid
+import com.oncelabs.onceble.Core.Peripheral.OBPeripheral
 import java.util.*
 
 
@@ -23,6 +24,7 @@ typealias BluetoothAdapterStateChangedHandler = (Int) -> Unit
 class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, context: Context) {
 
     //Handlers
+    private var handlers = mutableMapOf<Int,Any>()
     private var obperipheralDiscoveryHandler: OBPeripheralDiscoveredHandler? = null
     private var bluetoothAdapterStateChangedHandler: BluetoothAdapterStateChangedHandler? = null
 
@@ -31,7 +33,6 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
     private val REQUEST_ENABLE_BT          = 1
     private val REQUEST_COARSE_LOCATION    = 2
     private var scanState                  = ScanState.Idle
-
 
     private val leDeviceMap: MutableMap<String, OBPeripheral>  = mutableMapOf()
     private val bluetoothAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -51,6 +52,33 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
         }
         else {
             println("Bluetooth adapter is already enabled")
+        }
+
+        this.on(OBEvent.ConnectedPeripheral{
+            print("Connected peripheral $it")
+        })
+    }
+
+    public  fun on(event: OBEvent){
+        when (event){
+            is OBEvent.ConnectedPeripheral -> {
+                event.handler?.let { handlers.put(OBEvent.raw(event), it) }
+            }
+            is OBEvent.FailedToConnectPeripheral -> {
+                event.handler?.let { handlers.put(OBEvent.raw(event), it) }
+            }
+            is OBEvent.DisconnectedPeripheral -> {
+                event.handler?.let { handlers.put(OBEvent.raw(event), it) }
+            }
+            is OBEvent.DiscoveredPeripheral -> {
+                event.handler?.let { handlers.put(OBEvent.raw(event), it) }
+            }
+            is OBEvent.BleReady -> {
+                event.handler?.let { handlers.put(OBEvent.raw(event), it) }
+            }
+            is OBEvent.DiscoveredRegisteredType -> {
+                event.handler?.let { handlers.put(OBEvent.raw(event), it) }
+            }
         }
     }
 
@@ -73,6 +101,11 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
                         }
                         BluetoothAdapter.STATE_ON -> {
                             println("BluetoothAdapterState: STATE_ON")
+                            (handlers.get(OBEvent.raw(OBEvent.BleReady())))?.let {
+                                (it as (() -> Unit)).let { handler ->
+                                    handler()
+                                }
+                            }
                         }
                         BluetoothAdapter.STATE_TURNING_ON -> {
                             println("BluetoothAdapterState: STATE_TURNING_ON")
@@ -167,7 +200,11 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
                 if (!leDeviceMap.containsKey(it)) {
                     println("OBCentralManager: New scan result $result")
 
-                    leDeviceMap[it] = OBPeripheral(device, result, context)
+                    leDeviceMap[it] = OBPeripheral(
+                            device,
+                            result,
+                            context
+                    )
                     leDeviceMap[it]?.let {
                             obPeripheralInstance -> obperipheralDiscoveryHandler?.invoke(obPeripheralInstance)
                     }

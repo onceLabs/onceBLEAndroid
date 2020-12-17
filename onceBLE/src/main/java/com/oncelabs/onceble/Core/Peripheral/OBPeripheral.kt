@@ -1,13 +1,12 @@
-package com.oncelabs.onceble
+package com.oncelabs.onceble.Core.Peripheral
 
 
 import android.bluetooth.*
 import android.bluetooth.le.ScanResult
 import android.content.Context
-import android.os.Handler
-import androidx.core.os.HandlerCompat.postDelayed
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.oncelabs.onceble.Core.Central.OBConnectionOptions
 import kotlinx.coroutines.*
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -257,8 +256,8 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: ScanResult?
     fun read(
         characteristic: BluetoothGattCharacteristic?
     ) {
-        val gattReadRequest= OBGattRequest(OBGATTRequestType.read){
-            characteristic?.let{
+        val gattReadRequest= OBGattRequest(OBGATTRequestType.read) {
+            characteristic?.let {
                 println("Attempt to read characteristic: ${characteristic.uuid}")
                 gatt?.readCharacteristic(characteristic)
             }
@@ -293,16 +292,15 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: ScanResult?
     ): Boolean? {
         println("Enable notifications")
 
-        val gattNotificationRequest = OBGattRequest(OBGATTRequestType.enableNotification){
+        val gattNotificationRequest = OBGattRequest(OBGATTRequestType.enableNotification) {
             gatt?.setCharacteristicNotification(characteristic, enable)
             val descriptor = characteristic.getDescriptor(CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID)
 
             //Thread.sleep(10)
 
-            if(enable){
+            if (enable) {
                 descriptor.value = byteArrayOf(0x01, 0x00)
-            }
-            else{
+            } else {
                 descriptor.value = byteArrayOf(0x00, 0x00)
             }
 
@@ -320,16 +318,17 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: ScanResult?
     ): Boolean? {
         println("Enable notifications")
 
-        val gattIndicationRequest = OBGattRequest(OBGATTRequestType.enableIndication){
+        val gattIndicationRequest = OBGattRequest(OBGATTRequestType.enableIndication) {
             gatt?.setCharacteristicNotification(characteristic, enable)
             val descriptor = characteristic.getDescriptor(CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID)
 
-            if(descriptor == null){println("Descriptor is null")}
-
-            if(enable){
-                descriptor.value = byteArrayOf(0x02, 0x00)
+            if (descriptor == null) {
+                println("Descriptor is null")
             }
-            else{
+
+            if (enable) {
+                descriptor.value = byteArrayOf(0x02, 0x00)
+            } else {
                 descriptor.value = byteArrayOf(0x00, 0x00)
             }
 
@@ -350,7 +349,7 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: ScanResult?
 //            delay(10L)  // ... while we delay for 2 seconds to keep JVM alive
 //        }
 
-        val gattWriteRequest = OBGattRequest(OBGATTRequestType.write){
+        val gattWriteRequest = OBGattRequest(OBGATTRequestType.write) {
             data?.let {
                 for (b in it) {
                     val st = String.format("%02X", b)
@@ -359,8 +358,8 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: ScanResult?
             }
             println("    EndData")
 
-            characteristic?.value       = data
-            characteristic?.writeType   = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+            characteristic?.value = data
+            characteristic?.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
             gatt?.writeCharacteristic(characteristic)
         }
 
@@ -375,7 +374,7 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: ScanResult?
             delay(10L)  // ... while we delay for 2 seconds to keep JVM alive
         }
 
-        val gattWriteRequest = OBGattRequest(OBGATTRequestType.write){
+        val gattWriteRequest = OBGattRequest(OBGATTRequestType.write) {
             data?.let {
                 for (b in it) {
                     val st = String.format("%02X", b)
@@ -384,8 +383,8 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: ScanResult?
             }
             println("    EndData")
 
-            characteristic?.value       = data
-            characteristic?.writeType   = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+            characteristic?.value = data
+            characteristic?.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
             gatt?.writeCharacteristic(characteristic)
         }
 
