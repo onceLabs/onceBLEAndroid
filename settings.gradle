@@ -1,3 +1,2 @@
 include ':onceBLE'
-include ':app'
 rootProject.name = "onceBleAndroid"
