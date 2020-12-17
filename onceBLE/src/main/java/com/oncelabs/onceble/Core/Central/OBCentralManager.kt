@@ -25,11 +25,13 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
 
     //Handlers
     private var handlers = mutableMapOf<Int,Any>()
+
+    // Deprecate below in favor of new event style above
     private var obperipheralDiscoveryHandler: OBPeripheralDiscoveredHandler? = null
     private var bluetoothAdapterStateChangedHandler: BluetoothAdapterStateChangedHandler? = null
 
     //Private
-    private val context = context
+    private val context           = context
     private val REQUEST_ENABLE_BT          = 1
     private val REQUEST_COARSE_LOCATION    = 2
     private var scanState                  = ScanState.Idle
@@ -56,6 +58,10 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
 
         this.on(OBEvent.ConnectedPeripheral{
             print("Connected peripheral $it")
+        })
+
+        this.on(OBEvent.BleReady{
+            print("BLE Ready")
         })
     }
 
@@ -85,7 +91,9 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
     private fun setupBluetoothAdapterStateHandler(){
         println("Setting up BluetoothAdapterStateHandler")
         val bluetoothAdapterStateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+
             override fun onReceive(context: Context, intent: Intent) {
+
                 val action = intent.action
                 if (action == BluetoothAdapter.ACTION_STATE_CHANGED) {
                     val state = intent.getIntExtra(
@@ -101,10 +109,10 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
                         }
                         BluetoothAdapter.STATE_ON -> {
                             println("BluetoothAdapterState: STATE_ON")
+                            //Call BLE ready handler
                             (handlers.get(OBEvent.raw(OBEvent.BleReady())))?.let {
-                                (it as (() -> Unit)).let { handler ->
-                                    handler()
-                                }
+                                //Not sure how to make sure the handler is the correct type here
+                                (it as (() -> Unit))()
                             }
                         }
                         BluetoothAdapter.STATE_TURNING_ON -> {
@@ -138,8 +146,7 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
 
     // Start scan
     public fun startScanning(options: OBScanOptions? = null){
-        println("Starting scanning"
-        )
+        println("Starting scanning")
         // Make sure we aren't already scanning
         if (scanState == ScanState.Idle || scanState == ScanState.Unknown) {
 
@@ -181,7 +188,6 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
 
     // Stop scan
     public  fun stopScanning(){
-
         if (scanState == ScanState.Scanning){
             bluetoothLeScanner?.stopScan(leScanCallback)
         }

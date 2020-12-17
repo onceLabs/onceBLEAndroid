@@ -32,5 +32,4 @@ sealed class OBEvent{
             }
         }
     }
-
 }
