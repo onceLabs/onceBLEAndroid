@@ -28,10 +28,6 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
     //Handlers
     private var handlers = mutableMapOf<Int,Any>()
 
-    // Deprecate below in favor of new event style above
-//    private var obperipheralDiscoveryHandler: OBPeripheralDiscoveredHandler? = null
-//    private var bluetoothAdapterStateChangedHandler: BluetoothAdapterStateChangedHandler? = null
-
     //Private
     private val context           = context
     private val REQUEST_ENABLE_BT          = 1
