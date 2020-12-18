@@ -4,6 +4,7 @@ import android.bluetooth.le.ScanResult
 import android.util.SparseArray
 
 data class OBAdvertisementData(val scanResult: ScanResult) {
+    var systemInstance = scanResult
     var address = scanResult.device.address
     var primaryPhy = scanResult.primaryPhy
     var secondaryPhy = scanResult.secondaryPhy

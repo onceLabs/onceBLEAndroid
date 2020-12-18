@@ -19,7 +19,7 @@ typealias CharacteristicValueHandler = (BluetoothGattCharacteristic) -> Unit
 typealias ConnectionHandler = (ConnectionState) -> Unit
 
 
-open class OBPeripheral(device: BluetoothDevice? = null, scanResult: ScanResult? = null, context: Context): BluetoothGattCallback(){
+open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertisementData? = null, context: Context): BluetoothGattCallback(){
 
     // Request queue
     private var gattRequestQueue: Queue<OBGattRequest> = ConcurrentLinkedQueue<OBGattRequest>();
@@ -35,8 +35,9 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: ScanResult?
 
     var id: String? = device?.address
 
-    private val _latestAdvData = MutableLiveData<ScanResult>()
-    val latestAdvData : LiveData<ScanResult>
+    //Old
+    private val _latestAdvData = MutableLiveData<OBAdvertisementData>()
+    val latestAdvData : LiveData<OBAdvertisementData>
         get() = _latestAdvData
 
     private var systemDevice: BluetoothDevice? = device
@@ -109,11 +110,11 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: ScanResult?
         }
     }
 
-    fun setLatestAdvData(advData: ScanResult){
+    fun setLatestAdvData(advData: OBAdvertisementData){
         _latestAdvData.value = advData
     }
 
-    fun setPeripheral(device: BluetoothDevice, scanResult: ScanResult){
+    fun setPeripheral(device: BluetoothDevice, scanResult: OBAdvertisementData){
         _latestAdvData.value = scanResult
         systemDevice = device
     }
@@ -345,10 +346,6 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: ScanResult?
         data: ByteArray?
     ) {
 
-//        runBlocking {     // but this expression blocks the main thread
-//            delay(10L)  // ... while we delay for 2 seconds to keep JVM alive
-//        }
-
         val gattWriteRequest = OBGattRequest(OBGATTRequestType.write) {
             data?.let {
                 for (b in it) {
@@ -370,9 +367,6 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: ScanResult?
         characteristic: BluetoothGattCharacteristic?,
         data: ByteArray?
     ) {
-        runBlocking {     // but this expression blocks the main thread
-            delay(10L)  // ... while we delay for 2 seconds to keep JVM alive
-        }
 
         val gattWriteRequest = OBGattRequest(OBGATTRequestType.write) {
             data?.let {

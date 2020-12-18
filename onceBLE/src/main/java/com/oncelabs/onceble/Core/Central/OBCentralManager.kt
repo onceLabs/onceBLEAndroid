@@ -216,6 +216,7 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
                     }
                 }
                 else { // We already have so update with new data
+                    //Create new OBAdvertisementData
                     leDeviceMap[it]?.setLatestAdvData(result)
                 }
             }
