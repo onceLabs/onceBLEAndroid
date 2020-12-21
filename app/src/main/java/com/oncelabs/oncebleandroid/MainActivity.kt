@@ -3,6 +3,8 @@ package com.oncelabs.oncebleandroid
 import android.bluetooth.BluetoothAdapter
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
 import com.oncelabs.onceble.core.central.OBCentralManager
 import com.oncelabs.onceble.core.central.OBEvent
 
@@ -30,8 +32,11 @@ class MainActivity : AppCompatActivity() {
         obCentralManager?.on(OBEvent.DiscoveredPeripheral{ _obPeripheral, _obAdvertisementData ->
 //            println("Device discovered")
             println("${_obAdvertisementData.name} ${_obAdvertisementData.address}")
-        })
 
+            _obPeripheral.rssiHistorical.observe(this as LifecycleOwner, Observer {
+                println("RSSI = ${_obPeripheral.latestAdvData.value?.name} ${it.first()}")
+            })
+        })
     }
 
     private fun startScanning(){
