@@ -37,7 +37,7 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
     val latestAdvData : LiveData<OBAdvertisementData>
         get() = _latestAdvData
 
-    private val rssiHistorical = MutableLiveData<MutableList<Int>>()
+    val rssiHistorical = MutableLiveData<MutableList<Int>>()
 
     private var systemDevice: BluetoothDevice? = device
     private var gatt: BluetoothGatt? = null
