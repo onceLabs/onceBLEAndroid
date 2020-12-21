@@ -203,7 +203,7 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
 
 
         gatt?.services?.let {
-            customGatt?.discovered(it)
+            customGatt?.discovered(it, gatt)
             this.serviceDiscoveryHandler?.invoke(it)
             it.forEach { service ->
                 println("OBPeripheral: discovered service with UUID: ${service.uuid}")
