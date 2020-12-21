@@ -1,4 +1,4 @@
-package com.oncelabs.onceble.Core.Peripheral
+package com.oncelabs.onceble.core.peripheral
 
 data class OBGattRequest(
         var requestType: OBGATTRequestType,

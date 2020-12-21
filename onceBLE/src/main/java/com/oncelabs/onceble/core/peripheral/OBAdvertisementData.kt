@@ -1,8 +1,7 @@
-package com.oncelabs.onceble.Core.Peripheral
+package com.oncelabs.onceble.core.peripheral
 
 import android.bluetooth.le.ScanResult
 import android.os.Build
-import android.util.SparseArray
 
 data class OBAdvertisementData(val scanResult: ScanResult) {
     var systemInstance = scanResult

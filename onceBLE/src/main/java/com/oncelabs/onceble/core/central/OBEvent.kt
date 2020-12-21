@@ -1,7 +1,7 @@
-package com.oncelabs.onceble.Core.Central
+package com.oncelabs.onceble.core.central
 
-import com.oncelabs.onceble.Core.Peripheral.OBAdvertisementData
-import com.oncelabs.onceble.Core.Peripheral.OBPeripheral
+import com.oncelabs.onceble.core.peripheral.OBAdvertisementData
+import com.oncelabs.onceble.core.peripheral.OBPeripheral
 //typealias handler = (OBPeripheral) -> Unit
 //enum class _OBEvent {
 //    ConnectedPeripheral(handler),

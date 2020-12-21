@@ -1,13 +1,11 @@
-package com.oncelabs.onceble.Core.Peripheral
+package com.oncelabs.onceble.core.peripheral
 
 
 import android.bluetooth.*
-import android.bluetooth.le.ScanResult
 import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.oncelabs.onceble.Core.Central.OBConnectionOptions
-import kotlinx.coroutines.*
+import com.oncelabs.onceble.core.central.OBConnectionOptions
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 

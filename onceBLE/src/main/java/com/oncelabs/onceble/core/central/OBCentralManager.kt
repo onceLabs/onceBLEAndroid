@@ -1,4 +1,4 @@
-package com.oncelabs.onceble.Core.Central
+package com.oncelabs.onceble.core.central
 
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
@@ -8,8 +8,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.ParcelUuid
-import com.oncelabs.onceble.Core.Peripheral.OBAdvertisementData
-import com.oncelabs.onceble.Core.Peripheral.OBPeripheral
+import com.oncelabs.onceble.core.peripheral.OBAdvertisementData
+import com.oncelabs.onceble.core.peripheral.OBPeripheral
 import com.oncelabs.onceble.OBLog
 import java.util.*
 
