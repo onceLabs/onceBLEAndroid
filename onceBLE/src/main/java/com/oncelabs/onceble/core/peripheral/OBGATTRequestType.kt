@@ -1,4 +1,4 @@
-package com.oncelabs.onceble
+package com.oncelabs.onceble.core.peripheral
 
 enum class OBGATTRequestType {
     write,
