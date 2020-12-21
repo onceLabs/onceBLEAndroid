@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.ParcelUuid
+import com.oncelabs.onceble.Core.Peripheral.GATTClient.OBGattServer
 import com.oncelabs.onceble.Core.Peripheral.OBAdvertisementData
 import com.oncelabs.onceble.Core.Peripheral.OBPeripheral
 import com.oncelabs.onceble.OBLog
@@ -28,11 +29,8 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
     //Handlers
     private var handlers = mutableMapOf<Int,Any>()
 
-    // Deprecate below in favor of new event style above
-//    private var obperipheralDiscoveryHandler: OBPeripheralDiscoveredHandler? = null
-//    private var bluetoothAdapterStateChangedHandler: BluetoothAdapterStateChangedHandler? = null
-
     //Private
+    private var registeredPeripheralTypes: MutableList<OBGattServer> = mutableListOf()
     private val context           = context
     private val REQUEST_ENABLE_BT          = 1
     private val REQUEST_COARSE_LOCATION    = 2
@@ -92,6 +90,10 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
         }
     }
 
+    fun register(customPeripheralType: OBGattServer){
+        this.registeredPeripheralTypes.add(customPeripheralType)
+    }
+
     private fun setupBluetoothAdapterStateHandler(){
         obLog.log("Setting up BluetoothAdapterStateHandler")
         val bluetoothAdapterStateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -120,7 +122,6 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
                             obLog.log("BluetoothAdapterState: STATE_TURNING_ON")
                         }
                     }
-//                    bluetoothAdapterStateChangedHandler?.invoke(state)
                 }
             }
         }
@@ -132,11 +133,6 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
     fun bleIsEnabled(): Boolean{
         return (bluetoothAdapter.state == BluetoothAdapter.STATE_ON)
     }
-
-//    fun getBLEState(): Int{
-//        return bluetoothAdapter.state
-//    }
-
 
     // Start scan
     fun startScanning(options: OBScanOptions? = null){
