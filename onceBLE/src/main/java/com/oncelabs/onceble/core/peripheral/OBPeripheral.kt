@@ -35,10 +35,11 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
     var customGatt: OBGatt? = null
     var id: String? = device?.address
 
-    //Old
     private val _latestAdvData = MutableLiveData<OBAdvertisementData>()
     val latestAdvData : LiveData<OBAdvertisementData>
         get() = _latestAdvData
+
+    val rssiHistorical = MutableLiveData<MutableList<Int>>()
 
     private var systemDevice: BluetoothDevice? = device
     private var gatt: BluetoothGatt? = null
@@ -112,6 +113,23 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
 
     fun setLatestAdvData(advData: OBAdvertisementData){
         _latestAdvData.value = advData
+
+        if(rssiHistorical.value == null){
+            rssiHistorical.value = mutableListOf()
+        }
+
+        rssiHistorical.value?.let{
+            val rssiList = it
+
+            if(rssiList.size >= 50){
+                rssiList.removeAt(0)
+            }
+            rssiList.add(advData.scanResult.rssi)
+            rssiHistorical.value = rssiList
+        }
+
+
+
     }
 
     fun setPeripheral(device: BluetoothDevice, scanResult: OBAdvertisementData){
