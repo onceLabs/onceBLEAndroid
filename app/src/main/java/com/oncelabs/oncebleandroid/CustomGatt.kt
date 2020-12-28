@@ -1,8 +1,8 @@
 package com.oncelabs.oncebleandroid
 
-import com.oncelabs.onceble.Core.Peripheral.GATTClient.OBCharacteristic
-import com.oncelabs.onceble.Core.Peripheral.GATTClient.OBGatt
-import com.oncelabs.onceble.Core.Peripheral.GATTClient.OBService
+import com.oncelabs.onceble.core.peripheral.gattClient.OBCharacteristic
+import com.oncelabs.onceble.core.peripheral.gattClient.OBGatt
+import com.oncelabs.onceble.core.peripheral.gattClient.OBService
 import java.util.*
 
 /*  Battery service UUIDs */

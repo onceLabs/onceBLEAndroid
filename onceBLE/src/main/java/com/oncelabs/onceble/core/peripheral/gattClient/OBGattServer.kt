@@ -1,8 +1,8 @@
-package com.oncelabs.onceble.Core.Peripheral.GATTClient
+package com.oncelabs.onceble.core.peripheral.gattClient
 
 import android.bluetooth.le.ScanResult
-import com.oncelabs.onceble.Core.Peripheral.OBAdvertisementData
-import com.oncelabs.onceble.Core.Peripheral.OBPeripheral
+import com.oncelabs.onceble.core.peripheral.OBAdvertisementData
+import com.oncelabs.onceble.core.peripheral.OBPeripheral
 
 interface OBGattServer {
     val customGatt: OBGatt?

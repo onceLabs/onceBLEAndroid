@@ -1,6 +1,5 @@
-package com.oncelabs.onceble.Core.Peripheral.GATTClient
+package com.oncelabs.onceble.core.peripheral.gattClient
 
-import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic
 import java.util.*

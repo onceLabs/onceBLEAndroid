@@ -1,10 +1,9 @@
 package com.oncelabs.oncebleandroid
 
-import android.bluetooth.BluetoothAdapter
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import com.oncelabs.onceble.Core.Central.OBCentralManager
-import com.oncelabs.onceble.Core.Central.OBEvent
+import com.oncelabs.onceble.core.central.OBCentralManager
+import com.oncelabs.onceble.core.central.OBEvent
 
 class MainActivity : AppCompatActivity() {
 
