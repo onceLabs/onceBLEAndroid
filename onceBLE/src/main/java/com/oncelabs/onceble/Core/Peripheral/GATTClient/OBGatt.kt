@@ -5,7 +5,7 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
 import java.util.*
 
-class OBGatt {
+open class OBGatt {
 
     var services: MutableMap<UUID, OBService> = mutableMapOf()
 
