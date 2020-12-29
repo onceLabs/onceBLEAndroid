@@ -1,10 +1,11 @@
 package com.oncelabs.oncebleandroid
 
-import android.bluetooth.BluetoothAdapter
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
+
 import com.oncelabs.onceble.core.central.OBCentralManager
 import com.oncelabs.onceble.core.central.OBEvent
 

@@ -6,6 +6,7 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.oncelabs.onceble.core.central.OBConnectionOptions
+import com.oncelabs.onceble.core.peripheral.gattClient.OBGatt
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -31,6 +32,7 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
     private var characteristicUpdateHandler: CharacteristicValueHandler? = null
     private var connectionHandler: ConnectionHandler? = null
 
+    var customGatt: OBGatt? = null
     var id: String? = device?.address
 
     private val _latestAdvData = MutableLiveData<OBAdvertisementData>()
@@ -215,7 +217,9 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
     ) {
         super.onServicesDiscovered(gatt, status)
 
+
         gatt?.services?.let {
+            customGatt?.discovered(it, gatt)
             this.serviceDiscoveryHandler?.invoke(it)
             it.forEach { service ->
                 println("OBPeripheral: discovered service with UUID: ${service.uuid}")
