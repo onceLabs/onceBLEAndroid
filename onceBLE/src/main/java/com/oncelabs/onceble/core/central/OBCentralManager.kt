@@ -22,9 +22,6 @@ enum class ScanState{
     Unknown
 }
 
-typealias OBPeripheralDiscoveredHandler = (OBPeripheral) -> Unit
-typealias BluetoothAdapterStateChangedHandler = (Int) -> Unit
-
 class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, context: Context) {
 
     // Handlers
@@ -60,13 +57,6 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
             obLog.log("Bluetooth adapter is already enabled")
         }
 
-        this.on(OBEvent.ConnectedPeripheral{
-            obLog.log("Connected peripheral $it")
-        })
-
-        this.on(OBEvent.BleReady{
-            obLog.log("BLE Ready")
-        })
     }
 
     fun on(event: OBEvent){
