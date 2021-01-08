@@ -62,9 +62,13 @@ class OBCharacteristic {
         writeCompletionHandler = onWrite
         this.gatt?.let {
             systemCharacteristic?.let { char ->
-                it.get()?.write(char, data)
+                it.get()?.write(char, data, withResponse)
             }
         }
+    }
+    
+    fun updated(){
+
     }
 
     fun valueWritten(success: Boolean, error: Any){
@@ -76,5 +80,6 @@ class OBCharacteristic {
         systemCharacteristic?.let { char ->
             readCompletionHandler?.invoke(char.value)
         }
+        readCompletionHandler = null
     }
 }

@@ -21,8 +21,13 @@ open class OBGatt(private val owner: OBPeripheral) {
         }
     }
 
-    fun write(characteristic: BluetoothGattCharacteristic, data: ByteArray){
-        owner.write(characteristic, data)
+    fun write(characteristic: BluetoothGattCharacteristic, data: ByteArray, withResponse: Boolean){
+        if (withResponse) {
+            owner.write(characteristic, data)
+        }
+        else {
+            owner.writeNoResponse(characteristic, data)
+        }
     }
 
     fun read(characteristic: BluetoothGattCharacteristic){
@@ -37,20 +42,20 @@ open class OBGatt(private val owner: OBPeripheral) {
         owner.setCharacteristicIndication(characteristic, enable)
     }
 
-    fun wrote(characteristic: BluetoothGattCharacteristic){
-
+    fun wrote(characteristic: BluetoothGattCharacteristic, status: Int){
+        characteristics[characteristic.uuid]?.valueWritten(true, status)
     }
 
-    fun didRead(characteristic: BluetoothGattCharacteristic){
-
+    fun didRead(characteristic: BluetoothGattCharacteristic, status: Int){
+        characteristics[characteristic.uuid]?.valueRead(true, status)
     }
 
-    fun wrote(descriptor: BluetoothGattDescriptor){
+    fun wrote(descriptor: BluetoothGattDescriptor, status: Int){
 
     }
 
     fun updated(characteristic: BluetoothGattCharacteristic){
-
+        characteristics[characteristic.uuid]?.updated()
     }
 
     fun discovered(services: MutableList<BluetoothGattService>, gatt: BluetoothGatt){

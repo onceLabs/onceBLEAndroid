@@ -30,10 +30,9 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
 
     // Handlers
     private var serviceDiscoveryHandler: ServiceDiscoveryHandler? = null
-    private var characteristicUpdateHandler: CharacteristicValueHandler? = null
     private var connectionHandler: ConnectionHandler? = null
 
-    var customGatt: OBGatt? = null
+    var obGatt: OBGatt? = null
     var id: String? = device?.address
 
     private val _latestAdvData = MutableLiveData<OBAdvertisementData>()
@@ -53,9 +52,9 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
         }
 
         gatt?.let {
-            customGatt = it
+            obGatt = it
         } ?: run {
-
+            obGatt = OBGatt(this)
         }
     }
 
@@ -113,7 +112,6 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
                 print("MTU Update request")
             }
         }
-
         gattRequest.operation.invoke()
     }
 
@@ -170,10 +168,6 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
 //        }, 5000)
     }
 
-    fun onCharacteristicValueUpdated(handler: CharacteristicValueHandler){
-        this.characteristicUpdateHandler = handler
-    }
-
     fun onDiscoveredServices(
         handler: ServiceDiscoveryHandler
     ) {
@@ -216,6 +210,93 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
         }
     }
 
+    fun read(
+        characteristic: BluetoothGattCharacteristic?
+    ) {
+        val gattReadRequest= OBGattRequest(OBGATTRequestType.read) {
+            characteristic?.let {
+                println("Attempt to read characteristic: ${characteristic.uuid}")
+                gatt?.readCharacteristic(characteristic)
+            }
+        }
+        enqueueOperation(gattReadRequest)
+    }
+
+    fun setCharacteristicIndication(
+        characteristic: BluetoothGattCharacteristic,
+        enable: Boolean
+    ): Boolean? {
+        println("Enable notifications")
+        val gattIndicationRequest = OBGattRequest(OBGATTRequestType.enableIndication) {
+            gatt?.setCharacteristicNotification(characteristic, enable)
+            val descriptor = characteristic.getDescriptor(CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID)
+
+            if (descriptor == null) {
+                println("Descriptor is null")
+            }
+
+            if (enable) {
+                descriptor.value = byteArrayOf(0x02, 0x00)
+            } else {
+                descriptor.value = byteArrayOf(0x00, 0x00)
+            }
+
+            gatt?.writeDescriptor(descriptor)
+        }
+
+        enqueueOperation(gattIndicationRequest)
+        return true//descriptor write operation successfully started?
+    }
+
+    fun write(
+        characteristic: BluetoothGattCharacteristic?,
+        data: ByteArray?
+    ) {
+        val gattWriteRequest = OBGattRequest(OBGATTRequestType.write) {
+            data?.let {
+                for (b in it) {
+                    val st = String.format("%02X", b)
+                    print(st)
+                }
+            }
+            println("    EndData")
+
+            characteristic?.value = data
+            characteristic?.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+            gatt?.writeCharacteristic(characteristic)
+        }
+
+        enqueueOperation(gattWriteRequest)
+    }
+
+    fun writeNoResponse(
+        characteristic: BluetoothGattCharacteristic?,
+        data: ByteArray?
+    ) {
+        val gattWriteRequest = OBGattRequest(OBGATTRequestType.write) {
+            data?.let {
+                for (b in it) {
+                    val st = String.format("%02X", b)
+                    print(st)
+                }
+            }
+            println("    EndData")
+
+            characteristic?.value = data
+            characteristic?.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+            gatt?.writeCharacteristic(characteristic)
+        }
+
+        enqueueOperation(gattWriteRequest)
+    }
+
+    fun readRemoteRssi(): Boolean{
+        gatt?.let{
+            return it.readRemoteRssi()
+        }
+        return false
+    }
+
     override fun onServicesDiscovered(
         gatt: BluetoothGatt?,
         status: Int
@@ -223,15 +304,10 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
         super.onServicesDiscovered(gatt, status)
 
         gatt?.services?.let {
+
             this.serviceDiscoveryHandler?.invoke(it)
 
-            customGatt?.let { _customGatt ->
-                customGatt?.discovered(it, gatt)
-            } ?: run {
-                it.forEach{discoveredService ->
-                    //Need to finish for non-predifined GATT
-                }
-            }
+            obGatt?.discovered(it, gatt)
 
             it.forEach { service ->
                 println("OBPeripheral: discovered service with UUID: ${service.uuid}")
@@ -252,11 +328,7 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
         super.onCharacteristicRead(gatt, characteristic, status)
 
         characteristic?.let{
-            customGatt?.didRead(it)
-        }
-
-        characteristic?.let{
-            characteristicUpdateHandler?.invoke(it)
+            obGatt?.didRead(it, status)
         }
 
         pendingGATTRequest?.requestType.let {
@@ -273,12 +345,7 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
         super.onCharacteristicChanged(gatt, characteristic)
 
         characteristic?.let{
-            customGatt?.updated(it)
-        }
-
-        characteristic?.let{
-            println("Characteristic change")
-            characteristicUpdateHandler?.invoke(it)
+            obGatt?.updated(it)
         }
     }
 
@@ -290,7 +357,7 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
         super.onCharacteristicWrite(gatt, characteristic, status)
 
         characteristic?.let{
-            customGatt?.wrote(it)
+            obGatt?.wrote(it, status)
         }
 
         pendingGATTRequest?.requestType.let {
@@ -300,24 +367,6 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
         }
     }
 
-    fun read(
-        characteristic: BluetoothGattCharacteristic?
-    ) {
-        val gattReadRequest= OBGattRequest(OBGATTRequestType.read) {
-            characteristic?.let {
-                println("Attempt to read characteristic: ${characteristic.uuid}")
-                gatt?.readCharacteristic(characteristic)
-            }
-        }
-        enqueueOperation(gattReadRequest)
-    }
-
-    fun readRemoteRssi(): Boolean{
-        gatt?.let{
-            return it.readRemoteRssi()
-        }
-        return false
-    }
 
     override fun onDescriptorWrite(
         gatt: BluetoothGatt?,
@@ -327,7 +376,7 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
         super.onDescriptorWrite(gatt, descriptor, status)
 
         descriptor?.let {
-            customGatt?.wrote(it)
+            obGatt?.wrote(it, status)
         }
 
         pendingGATTRequest?.requestType.let {
@@ -362,78 +411,4 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
 
         return true//descriptor write operation successfully started?
     }
-
-    fun setCharacteristicIndication(
-        characteristic: BluetoothGattCharacteristic,
-        enable: Boolean
-    ): Boolean? {
-        println("Enable notifications")
-
-        val gattIndicationRequest = OBGattRequest(OBGATTRequestType.enableIndication) {
-            gatt?.setCharacteristicNotification(characteristic, enable)
-            val descriptor = characteristic.getDescriptor(CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID)
-
-            if (descriptor == null) {
-                println("Descriptor is null")
-            }
-
-            if (enable) {
-                descriptor.value = byteArrayOf(0x02, 0x00)
-            } else {
-                descriptor.value = byteArrayOf(0x00, 0x00)
-            }
-
-            gatt?.writeDescriptor(descriptor)
-        }
-
-        enqueueOperation(gattIndicationRequest)
-
-        return true//descriptor write operation successfully started?
-    }
-
-    fun write(
-        characteristic: BluetoothGattCharacteristic?,
-        data: ByteArray?
-    ) {
-
-        val gattWriteRequest = OBGattRequest(OBGATTRequestType.write) {
-            data?.let {
-                for (b in it) {
-                    val st = String.format("%02X", b)
-                    print(st)
-                }
-            }
-            println("    EndData")
-
-            characteristic?.value = data
-            characteristic?.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-            gatt?.writeCharacteristic(characteristic)
-        }
-
-        enqueueOperation(gattWriteRequest)
-    }
-
-    fun writeNoResponse(
-        characteristic: BluetoothGattCharacteristic?,
-        data: ByteArray?
-    ) {
-
-        val gattWriteRequest = OBGattRequest(OBGATTRequestType.write) {
-            data?.let {
-                for (b in it) {
-                    val st = String.format("%02X", b)
-                    print(st)
-                }
-            }
-            println("    EndData")
-
-            characteristic?.value = data
-            characteristic?.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-            gatt?.writeCharacteristic(characteristic)
-        }
-
-        enqueueOperation(gattWriteRequest)
-
-    }
-
 }
