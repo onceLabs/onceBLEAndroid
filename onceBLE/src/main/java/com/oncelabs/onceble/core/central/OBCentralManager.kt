@@ -27,16 +27,17 @@ typealias BluetoothAdapterStateChangedHandler = (Int) -> Unit
 
 class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, context: Context) {
 
-    //Handlers
+    // Handlers
     private var handlers = mutableMapOf<Int,Any>()
 
-    //Private
+    // Private
     private var registeredPeripheralTypes: MutableList<OBGattServer> = mutableListOf()
     private val context           = context
     private val REQUEST_ENABLE_BT          = 1
     private val REQUEST_COARSE_LOCATION    = 2
     private var scanState                  = ScanState.Idle
 
+    //
     private val leDeviceMap: MutableMap<String, OBPeripheral>  = mutableMapOf()
     private val bluetoothAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private var bluetoothLeScanner: BluetoothLeScanner? = null
@@ -194,6 +195,7 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
                     leDeviceMap[it] = OBPeripheral(
                             device,
                             obAdvertisementData,
+                            null,
                             context
                     )
                     leDeviceMap[it]?.let { _obPeripheralInstance ->
