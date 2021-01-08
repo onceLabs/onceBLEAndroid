@@ -7,18 +7,19 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.oncelabs.onceble.core.central.OBConnectionOptions
 import com.oncelabs.onceble.core.peripheral.gattClient.OBGatt
+import com.oncelabs.onceble.core.peripheral.gattClient.OBService
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
 
-private val CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+val CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
 typealias ServiceDiscoveryHandler = (MutableList<BluetoothGattService>) -> Unit
 typealias CharacteristicValueHandler = (BluetoothGattCharacteristic) -> Unit
 typealias ConnectionHandler = (ConnectionState) -> Unit
 
 
-open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertisementData? = null, context: Context): BluetoothGattCallback(){
+open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertisementData? = null, gatt: OBGatt? = null, context: Context): BluetoothGattCallback(){
 
     // Request queue
     private var gattRequestQueue: Queue<OBGattRequest> = ConcurrentLinkedQueue<OBGattRequest>();
@@ -46,6 +47,17 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
 
     private var context = context
 
+    init {
+        scanResult?.let{
+            setLatestAdvData(it)
+        }
+
+        gatt?.let {
+            customGatt = it
+        } ?: run {
+
+        }
+    }
 
     @Synchronized
     private fun enqueueOperation(operation: OBGattRequest) {
@@ -105,11 +117,7 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
         gattRequest.operation.invoke()
     }
 
-    init {
-        scanResult?.let{
-            setLatestAdvData(it)
-        }
-    }
+
 
     fun setLatestAdvData(advData: OBAdvertisementData){
         _latestAdvData.value = advData
@@ -127,9 +135,6 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
             rssiList.add(advData.scanResult.rssi)
             rssiHistorical.value = rssiList
         }
-
-
-
     }
 
     fun setPeripheral(device: BluetoothDevice, scanResult: OBAdvertisementData){
@@ -217,10 +222,17 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
     ) {
         super.onServicesDiscovered(gatt, status)
 
-
         gatt?.services?.let {
-            customGatt?.discovered(it, gatt)
             this.serviceDiscoveryHandler?.invoke(it)
+
+            customGatt?.let { _customGatt ->
+                customGatt?.discovered(it, gatt)
+            } ?: run {
+                it.forEach{discoveredService ->
+                    //Need to finish for non-predifined GATT
+                }
+            }
+
             it.forEach { service ->
                 println("OBPeripheral: discovered service with UUID: ${service.uuid}")
                 service.characteristics.forEach{ characteristic ->
@@ -238,6 +250,11 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
         status: Int
     ) {
         super.onCharacteristicRead(gatt, characteristic, status)
+
+        characteristic?.let{
+            customGatt?.didRead(it)
+        }
+
         characteristic?.let{
             characteristicUpdateHandler?.invoke(it)
         }
@@ -254,6 +271,11 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
         characteristic: BluetoothGattCharacteristic?
     ) {
         super.onCharacteristicChanged(gatt, characteristic)
+
+        characteristic?.let{
+            customGatt?.updated(it)
+        }
+
         characteristic?.let{
             println("Characteristic change")
             characteristicUpdateHandler?.invoke(it)
@@ -266,6 +288,10 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
         status: Int
     ) {
         super.onCharacteristicWrite(gatt, characteristic, status)
+
+        characteristic?.let{
+            customGatt?.wrote(it)
+        }
 
         pendingGATTRequest?.requestType.let {
             if (it == OBGATTRequestType.write){
@@ -299,6 +325,10 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
         status: Int
     ) {
         super.onDescriptorWrite(gatt, descriptor, status)
+
+        descriptor?.let {
+            customGatt?.wrote(it)
+        }
 
         pendingGATTRequest?.requestType.let {
             if (it == OBGATTRequestType.enableIndication || it == OBGATTRequestType.enableNotification){

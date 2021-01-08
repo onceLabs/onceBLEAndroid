@@ -194,6 +194,7 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
                     leDeviceMap[it] = OBPeripheral(
                             device,
                             obAdvertisementData,
+                            null,
                             context
                     )
                     leDeviceMap[it]?.let { _obPeripheralInstance ->

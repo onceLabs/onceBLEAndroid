@@ -2,17 +2,55 @@ package com.oncelabs.onceble.core.peripheral.gattClient
 
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
+import com.oncelabs.onceble.core.peripheral.OBPeripheral
 import java.util.*
 
-open class OBGatt {
+open class OBGatt(private val owner: OBPeripheral) {
 
     var services: MutableMap<UUID, OBService> = mutableMapOf()
+    var characteristics: MutableMap<UUID, OBCharacteristic> = mutableMapOf()
 
     fun addServices(services: Array<OBService>){
         services.forEach{
             this.services[it.uuid] = it
+            it.characteristics.forEach{characteristic ->
+                this.characteristics[characteristic.uuid] = characteristic
+            }
         }
+    }
+
+    fun write(characteristic: BluetoothGattCharacteristic, data: ByteArray){
+        owner.write(characteristic, data)
+    }
+
+    fun read(characteristic: BluetoothGattCharacteristic){
+        owner.read(characteristic)
+    }
+
+    fun setCharacteristicNotification(characteristic: BluetoothGattCharacteristic, enable: Boolean) {
+        owner.setCharacteristicNotification(characteristic, enable)
+    }
+
+    fun setCharacteristicIndication(characteristic: BluetoothGattCharacteristic, enable: Boolean){
+        owner.setCharacteristicIndication(characteristic, enable)
+    }
+
+    fun wrote(characteristic: BluetoothGattCharacteristic){
+
+    }
+
+    fun didRead(characteristic: BluetoothGattCharacteristic){
+
+    }
+
+    fun wrote(descriptor: BluetoothGattDescriptor){
+
+    }
+
+    fun updated(characteristic: BluetoothGattCharacteristic){
+
     }
 
     fun discovered(services: MutableList<BluetoothGattService>, gatt: BluetoothGatt){
@@ -31,13 +69,13 @@ open class OBGatt {
                             predefinedCharacteristic.onFound(
                                 OBCharacteristic(
                                     foundCharacteristic,
-                                    gatt
+                                    this
                                 )
                             )
                         }
-                    } ?: run {
-
                     }
+                } ?: run {
+
                 }
             }
         }
