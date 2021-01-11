@@ -132,7 +132,7 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
         // Make sure we aren't already scanning
         if (scanState == ScanState.Idle || scanState == ScanState.Unknown) {
 
-            scanState = ScanState.Idle
+            scanState = ScanState.Scanning
 
             val testUuid = ParcelUuid(UUID.fromString("0000cbbb-0000-1000-8000-00805f9b34fb"))
 
@@ -153,7 +153,7 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
             scanFilters.add(scanFilter)
 
             obLog.log("Scan started")
-            bluetoothLeScanner?.startScan(
+            bluetoothLeScanner!!.startScan(
                 scanFilters,
                 scanSettings,
                 leScanCallback
