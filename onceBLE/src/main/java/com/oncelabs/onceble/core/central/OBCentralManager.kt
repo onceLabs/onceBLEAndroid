@@ -181,22 +181,36 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
                 // Do we already have this result
                 if (!leDeviceMap.containsKey(it)) {
                     obLog.log("OBCentralManager: New scan result $result")
+                    var peripheral: OBPeripheral? = null
+                    for (type in registeredPeripheralTypes) {
+                        if (type.isTypeMatchFor(obAdvertisementData, result)!!){
+                            peripheral = type.newInstance(obAdvertisementData, result)
+                        }
+                    }
 
-                    leDeviceMap[it] = OBPeripheral(
+                    peripheral?.let { p ->
+
+                        leDeviceMap[it] = p
+
+                        leDeviceMap[it]?.let { _obPeripheralInstance ->
+                            (handlers[OBEvent.raw(OBEvent.DiscoveredRegisteredType())] as ((Any, OBAdvertisementData) -> Unit))
+                                .invoke(_obPeripheralInstance, obAdvertisementData)
+                        }
+
+                    } ?: run {
+                        leDeviceMap[it] = OBPeripheral(
                             device,
                             obAdvertisementData,
                             null,
-                            context
-                    )
-                    leDeviceMap[it]?.let { _obPeripheralInstance ->
-                        (handlers[OBEvent.raw(OBEvent.DiscoveredPeripheral())] as ((OBPeripheral, OBAdvertisementData) -> Unit))
-                            .invoke(_obPeripheralInstance, obAdvertisementData)
+                            context)
 
-//                        if("filterMatch" == "filterMatch"){
-//                            (handlers[OBEvent.raw(OBEvent.DiscoveredRegisteredType())] as ((Any, OBPeripheral) -> Unit))
-//                                .invoke("CustomPeripheralType", _obPeripheralInstance)
-//                        }
+                        leDeviceMap[it]?.let { _obPeripheralInstance ->
+                            (handlers[OBEvent.raw(OBEvent.DiscoveredPeripheral())] as ((OBPeripheral, OBAdvertisementData) -> Unit))
+                                .invoke(_obPeripheralInstance, obAdvertisementData)
+                        }
                     }
+
+
                 }
                 else { // We already have so update with new data
                     //Create new OBAdvertisementData
