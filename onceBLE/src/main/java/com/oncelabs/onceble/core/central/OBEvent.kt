@@ -21,7 +21,7 @@ sealed class OBEvent{
     class DisconnectedPeripheral(val handler : ((OBPeripheral) -> Unit)? = null) : OBEvent()
     class DiscoveredPeripheral(val handler : ((OBPeripheral, OBAdvertisementData) -> Unit)? = null) : OBEvent()
     class BleReady(val handler : (() -> Unit)? = null) : OBEvent()
-    class DiscoveredRegisteredType(val handler : ((Any, OBPeripheral) -> Unit)? = null) : OBEvent()
+    class DiscoveredRegisteredType(val handler : ((Any, OBAdvertisementData) -> Unit)? = null) : OBEvent()
 
     companion object{
         fun raw(event: OBEvent): Int{
