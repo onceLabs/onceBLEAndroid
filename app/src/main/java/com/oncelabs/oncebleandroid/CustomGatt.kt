@@ -1,5 +1,6 @@
 package com.oncelabs.oncebleandroid
 
+import com.oncelabs.onceble.core.peripheral.OBPeripheral
 import com.oncelabs.onceble.core.peripheral.gattClient.OBCharacteristic
 import com.oncelabs.onceble.core.peripheral.gattClient.OBGatt
 import com.oncelabs.onceble.core.peripheral.gattClient.OBService
@@ -57,7 +58,7 @@ val BLUEBIRD_UUID_CHARACTERISTIC_FIRMWARE_REVISION = UUID.fromString( "2A26")
 val BLUEBIRD_UUID_CHARACTERISTIC_HARDWARE_REVISION = UUID.fromString( "2A27")
 val BLUEBIRD_UUID_CHARACTERISTIC_SOFTWARE_REVISION = UUID.fromString( "2A28")
 
-class CustomGatt: OBGatt() {
+class CustomGatt(owner: OBPeripheral): OBGatt(owner) {
 
     var bluebirdEnvironmentalService: OBService? = null
     var bluebirdTemperatureCharacteristic: OBCharacteristic? = null

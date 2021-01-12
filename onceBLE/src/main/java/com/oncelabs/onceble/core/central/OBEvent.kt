@@ -12,6 +12,9 @@ import com.oncelabs.onceble.core.peripheral.OBPeripheral
 //    DiscoveredRegisteredType
 //}
 
+typealias OBPeripheralDiscoveredHandler = (OBPeripheral) -> Unit
+typealias BluetoothAdapterStateChangedHandler = (Int) -> Unit
+
 sealed class OBEvent{
     class ConnectedPeripheral(val handler : ((OBPeripheral) -> Unit)? = null) : OBEvent()
     class FailedToConnectPeripheral(val handler : ((OBPeripheral) -> Unit)? = null) : OBEvent()

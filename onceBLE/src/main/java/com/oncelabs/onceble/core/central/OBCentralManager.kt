@@ -22,9 +22,6 @@ enum class ScanState{
     Unknown
 }
 
-typealias OBPeripheralDiscoveredHandler = (OBPeripheral) -> Unit
-typealias BluetoothAdapterStateChangedHandler = (Int) -> Unit
-
 class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, context: Context) {
 
     // Handlers
@@ -60,13 +57,6 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
             obLog.log("Bluetooth adapter is already enabled")
         }
 
-        this.on(OBEvent.ConnectedPeripheral{
-            obLog.log("Connected peripheral $it")
-        })
-
-        this.on(OBEvent.BleReady{
-            obLog.log("BLE Ready")
-        })
     }
 
     fun on(event: OBEvent){
@@ -142,7 +132,7 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
         // Make sure we aren't already scanning
         if (scanState == ScanState.Idle || scanState == ScanState.Unknown) {
 
-            scanState = ScanState.Idle
+            scanState = ScanState.Scanning
 
             val testUuid = ParcelUuid(UUID.fromString("0000cbbb-0000-1000-8000-00805f9b34fb"))
 
@@ -163,7 +153,7 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
             scanFilters.add(scanFilter)
 
             obLog.log("Scan started")
-            bluetoothLeScanner?.startScan(
+            bluetoothLeScanner!!.startScan(
                 scanFilters,
                 scanSettings,
                 leScanCallback
@@ -191,22 +181,36 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
                 // Do we already have this result
                 if (!leDeviceMap.containsKey(it)) {
                     obLog.log("OBCentralManager: New scan result $result")
+                    var peripheral: OBPeripheral? = null
+                    for (type in registeredPeripheralTypes) {
+                        if (type.isTypeMatchFor(obAdvertisementData, result)!!){
+                            peripheral = type.newInstance(obAdvertisementData, result)
+                        }
+                    }
 
-                    leDeviceMap[it] = OBPeripheral(
+                    peripheral?.let { p ->
+
+                        leDeviceMap[it] = p
+
+                        leDeviceMap[it]?.let { _obPeripheralInstance ->
+                            (handlers[OBEvent.raw(OBEvent.DiscoveredRegisteredType())] as ((Any, OBAdvertisementData) -> Unit))
+                                .invoke(_obPeripheralInstance, obAdvertisementData)
+                        }
+
+                    } ?: run {
+                        leDeviceMap[it] = OBPeripheral(
                             device,
                             obAdvertisementData,
                             null,
-                            context
-                    )
-                    leDeviceMap[it]?.let { _obPeripheralInstance ->
-                        (handlers[OBEvent.raw(OBEvent.DiscoveredPeripheral())] as ((OBPeripheral, OBAdvertisementData) -> Unit))
-                            .invoke(_obPeripheralInstance, obAdvertisementData)
+                            context)
 
-//                        if("filterMatch" == "filterMatch"){
-//                            (handlers[OBEvent.raw(OBEvent.DiscoveredRegisteredType())] as ((Any, OBPeripheral) -> Unit))
-//                                .invoke("CustomPeripheralType", _obPeripheralInstance)
-//                        }
+                        leDeviceMap[it]?.let { _obPeripheralInstance ->
+                            (handlers[OBEvent.raw(OBEvent.DiscoveredPeripheral())] as ((OBPeripheral, OBAdvertisementData) -> Unit))
+                                .invoke(_obPeripheralInstance, obAdvertisementData)
+                        }
                     }
+
+
                 }
                 else { // We already have so update with new data
                     //Create new OBAdvertisementData
