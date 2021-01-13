@@ -7,8 +7,9 @@ import android.bluetooth.BluetoothGattService
 import com.oncelabs.onceble.core.peripheral.OBPeripheral
 import java.util.*
 
-open class OBGatt(private val owner: OBPeripheral) {
+open class OBGatt() {
 
+    private var owner: OBPeripheral? = null
     var services: MutableMap<UUID, OBService> = mutableMapOf()
     var characteristics: MutableMap<UUID, OBCharacteristic> = mutableMapOf()
 
@@ -23,23 +24,23 @@ open class OBGatt(private val owner: OBPeripheral) {
 
     fun write(characteristic: BluetoothGattCharacteristic, data: ByteArray, withResponse: Boolean){
         if (withResponse) {
-            owner.write(characteristic, data)
+            owner?.write(characteristic, data)
         }
         else {
-            owner.writeNoResponse(characteristic, data)
+            owner?.writeNoResponse(characteristic, data)
         }
     }
 
     fun read(characteristic: BluetoothGattCharacteristic){
-        owner.read(characteristic)
+        owner?.read(characteristic)
     }
 
     fun setCharacteristicNotification(characteristic: BluetoothGattCharacteristic, enable: Boolean) {
-        owner.setCharacteristicNotification(characteristic, enable)
+        owner?.setCharacteristicNotification(characteristic, enable)
     }
 
     fun setCharacteristicIndication(characteristic: BluetoothGattCharacteristic, enable: Boolean){
-        owner.setCharacteristicIndication(characteristic, enable)
+        owner?.setCharacteristicIndication(characteristic, enable)
     }
 
     fun wrote(characteristic: BluetoothGattCharacteristic, status: Int){
@@ -58,7 +59,8 @@ open class OBGatt(private val owner: OBPeripheral) {
         characteristics[characteristic.uuid]?.updated()
     }
 
-    fun discovered(services: MutableList<BluetoothGattService>, gatt: BluetoothGatt){
+    fun discovered(services: MutableList<BluetoothGattService>, gatt: BluetoothGatt, owner: OBPeripheral){
+        this.owner = owner
         services.forEach { s ->
             this.services.forEach {
                     if (s.uuid == it.key) {

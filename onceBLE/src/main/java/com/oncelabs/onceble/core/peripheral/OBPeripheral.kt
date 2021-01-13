@@ -2,11 +2,13 @@ package com.oncelabs.onceble.core.peripheral
 
 
 import android.bluetooth.*
+import android.bluetooth.le.ScanResult
 import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.oncelabs.onceble.core.central.OBConnectionOptions
 import com.oncelabs.onceble.core.peripheral.gattClient.OBGatt
+import com.oncelabs.onceble.core.peripheral.gattClient.OBGattServer
 import com.oncelabs.onceble.core.peripheral.gattClient.OBService
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -19,7 +21,19 @@ typealias CharacteristicValueHandler = (BluetoothGattCharacteristic) -> Unit
 typealias ConnectionHandler = (ConnectionState) -> Unit
 
 
-open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertisementData? = null, gatt: OBGatt? = null, context: Context): BluetoothGattCallback(){
+open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertisementData? = null, context: Context): BluetoothGattCallback(), OBGattServer{
+
+    override var obGatt: OBGatt?
+        get() = OBGatt()
+        set(value) {}
+
+    override fun isTypeMatchFor(advData: OBAdvertisementData, peripheral: ScanResult): Boolean? {
+        return  null
+    }
+
+    override fun newInstance(advData: OBAdvertisementData, peripheral: ScanResult): OBPeripheral? {
+        return null
+    }
 
     // Request queue
     private var gattRequestQueue: Queue<OBGattRequest> = ConcurrentLinkedQueue<OBGattRequest>();
@@ -32,7 +46,6 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
     private var serviceDiscoveryHandler: ServiceDiscoveryHandler? = null
     private var connectionHandler: ConnectionHandler? = null
 
-    var obGatt: OBGatt? = null
     var id: String? = device?.address
 
     private val _latestAdvData = MutableLiveData<OBAdvertisementData>()
@@ -49,12 +62,6 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
     init {
         scanResult?.let{
             setLatestAdvData(it)
-        }
-
-        gatt?.let {
-            obGatt = it
-        } ?: run {
-            obGatt = OBGatt(this)
         }
     }
 
@@ -307,7 +314,7 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
 
             this.serviceDiscoveryHandler?.invoke(it)
 
-            obGatt?.discovered(it, gatt)
+            obGatt?.discovered(it, gatt, this)
 
             it.forEach { service ->
                 println("OBPeripheral: discovered service with UUID: ${service.uuid}")
