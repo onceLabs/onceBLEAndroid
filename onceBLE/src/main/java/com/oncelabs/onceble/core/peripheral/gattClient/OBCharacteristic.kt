@@ -2,14 +2,34 @@ package com.oncelabs.onceble.core.peripheral.gattClient
 
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.*
 import java.lang.ref.WeakReference
 import java.util.*
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Future
+import kotlin.coroutines.resume
+
+class SettableLiveData<T>(private val setter: (T?) -> Unit) {
+    private val data = MutableLiveData<T>()
+    fun observable():LiveData<T> = data
+    var value: T? = null
+        set(value) {
+            data.postValue(value)
+            setter(value)
+        }
+}
 
 class OBCharacteristic {
 
-    //
-    var value = MutableLiveData<ByteArray>()
+    var value = SettableLiveData<ByteArray>(){
+        it?.let { bytes -> this.asyncWrite(bytes, false, null) }
+    }
+        get() {
+            asyncRead { print(it) }
+            return field
+        }
 
     //
     var uuid: UUID
@@ -21,6 +41,8 @@ class OBCharacteristic {
     private var readCompletionHandler   : ((ByteArray?) -> Unit)?       = null
     private var systemCharacteristic    : BluetoothGattCharacteristic?  = null
     private var gatt                    : WeakReference<OBGatt>?        = null
+
+    private var readAwait: Deferred<ByteArray>?   = null
 
     constructor(characteristicUUID: UUID, onFound: GattCompletionHandler<OBCharacteristic>, descriptors: Array<OBDescriptor>){
         this.uuid = characteristicUUID
@@ -49,7 +71,22 @@ class OBCharacteristic {
         }
     }
 
-    fun read( onRead: ((ByteArray?) -> Unit)){
+    suspend fun syncRead(): ByteArray {
+        return suspendCancellableCoroutine<ByteArray> { continuation ->
+            readCompletionHandler = { bytes ->
+                bytes?.let {
+                    continuation.run { resume(it) }
+                }
+            }
+            this.gatt?.let {
+                systemCharacteristic?.let { char ->
+                    it.get()?.read(char)
+                }
+            }
+        }
+    }
+
+    fun asyncRead( onRead: ((ByteArray?) -> Unit)) {
         readCompletionHandler = onRead
         this.gatt?.let {
             systemCharacteristic?.let { char ->
@@ -58,7 +95,20 @@ class OBCharacteristic {
         }
     }
 
-    fun write( data: ByteArray, withResponse: Boolean, onWrite: ((success: Boolean) -> Unit)){
+    suspend fun syncWrite( data: ByteArray, withResponse: Boolean): Boolean {
+        return suspendCancellableCoroutine<Boolean> { continuation ->
+            writeCompletionHandler = {
+                continuation.resume(it)
+            }
+            this.gatt?.let {
+                systemCharacteristic?.let { char ->
+                    it.get()?.write(char, data, withResponse)
+                }
+            }
+        }
+    }
+
+    fun asyncWrite( data: ByteArray, withResponse: Boolean, onWrite: ((success: Boolean) -> Unit)?){
         writeCompletionHandler = onWrite
         this.gatt?.let {
             systemCharacteristic?.let { char ->
@@ -68,7 +118,7 @@ class OBCharacteristic {
     }
     
     fun updated(){
-
+        this.value.value = systemCharacteristic?.value
     }
 
     fun valueWritten(success: Boolean, error: Any){
