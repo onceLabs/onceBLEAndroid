@@ -10,6 +10,7 @@ import com.oncelabs.onceble.core.peripheral.OBPeripheral
 import com.oncelabs.onceble.core.peripheral.gattClient.OBGatt
 import com.oncelabs.onceble.core.peripheral.gattClient.OBGattServer
 
+
 class Bluebird(private var device: BluetoothDevice?, private var context: Context) : OBPeripheral(device = device, context = context) {
 
     //override var customGatt: OBGatt? = BluebirdGatt(this)
@@ -63,8 +64,9 @@ class Bluebird(private var device: BluetoothDevice?, private var context: Contex
     fun setLEDColor(color: Int) {
         val colorBytes = byteArrayOf(0xf, 0xf, 0x0)
 
+
         getGatt()?.bluebirdLedColorCharacteristic?.let {
-            it.write(colorBytes, true) { ok ->
+            it.asyncWrite(colorBytes, true) { ok ->
                 if (ok) {
                     Log.d("Bluebird", "LED color bytes sent!")
                 } else {
