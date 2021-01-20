@@ -15,7 +15,7 @@ import com.teknikio.tekniverse.model.Bluebird
 class MainActivity : AppCompatActivity() {
 
     private var obCentralManager: OBCentralManager? = null
-
+    private var bluebird: Bluebird? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -48,7 +48,8 @@ class MainActivity : AppCompatActivity() {
 
         obCentralManager?.on(OBEvent.DiscoveredRegisteredType { _obPeripheral, _obAdvertisementData  ->
             Log.d("BLEManager", "Found Registered Type")
-            (_obPeripheral as Bluebird).connect {
+            bluebird = (_obPeripheral as Bluebird)
+            bluebird?.connect {
                 when (it) {
                     ConnectionState.connecting -> Log.d("BLEManager", "Connecting Bluebird")
                     ConnectionState.connected -> Log.d("BLEManager", "Connected Bluebird")

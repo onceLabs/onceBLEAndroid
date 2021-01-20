@@ -11,21 +11,22 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 import kotlin.coroutines.resume
 
-class SettableLiveData<T>(private val setter: (T?) -> Unit) {
+class SettableLiveData<T>( initialValue: T,private val setter: (T) -> Unit) {
     private val data = MutableLiveData<T>()
     fun observable():LiveData<T> = data
-    var value: T? = null
+    var value: T = initialValue
         set(value) {
             data.postValue(value)
             setter(value)
         }
+    init {
+        data.postValue(initialValue)
+    }
 }
 
 class OBCharacteristic {
 
-    var value = SettableLiveData<ByteArray>(){
-        it?.let { bytes -> this.asyncWrite(bytes, false, null) }
-    }
+    var value = SettableLiveData<ByteArray>(byteArrayOf(0)){ this.asyncWrite(it, false, null) }
         get() {
             asyncRead { print(it) }
             return field
@@ -35,6 +36,7 @@ class OBCharacteristic {
     var uuid: UUID
     var descriptors: Array<OBDescriptor>
     var onFound: GattCompletionHandler<OBCharacteristic>
+    private var _onChanged: ((ByteArray) -> Unit)? = null
 
     //
     private var writeCompletionHandler  : ((success: Boolean) -> Unit)? = null
@@ -48,6 +50,10 @@ class OBCharacteristic {
         this.uuid = characteristicUUID
         this.onFound = onFound
         this.descriptors = descriptors
+    }
+
+    fun onChanged( onChangeHandler: ((ByteArray) -> Unit)){
+        this._onChanged = onChangeHandler
     }
 
     constructor(characteristic: BluetoothGattCharacteristic, gatt: OBGatt): this(characteristic.uuid, {}, arrayOf()){
@@ -118,7 +124,10 @@ class OBCharacteristic {
     }
     
     fun updated(){
-        this.value.value = systemCharacteristic?.value
+        systemCharacteristic?.value?.let {
+            this.value.value = it
+            _onChanged?.invoke(it)
+        }
     }
 
     fun valueWritten(success: Boolean, error: Any){
