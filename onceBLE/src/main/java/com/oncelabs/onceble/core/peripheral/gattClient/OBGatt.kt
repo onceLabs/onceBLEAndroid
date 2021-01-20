@@ -16,9 +16,9 @@ open class OBGatt() {
     fun addServices(services: Array<OBService>){
         services.forEach{
             this.services[it.uuid] = it
-            it.characteristics.forEach{characteristic ->
-                this.characteristics[characteristic.uuid] = characteristic
-            }
+//            it.characteristics.forEach{characteristic ->
+//                this.characteristics[characteristic.uuid] = characteristic
+//            }
         }
     }
 
@@ -73,12 +73,10 @@ open class OBGatt() {
                     service.characteristics.forEach { predefinedCharacteristic ->
                         if (foundCharacteristic.uuid == predefinedCharacteristic.uuid) {
                             print("OBGatt: assigned characteristic ${predefinedCharacteristic.uuid}")
-                            predefinedCharacteristic.onFound(
-                                OBCharacteristic(
-                                    foundCharacteristic,
-                                    this
-                                )
-                            )
+                            val char = OBCharacteristic(foundCharacteristic, this)
+                            this.characteristics[predefinedCharacteristic.uuid] = char
+                            // predefinedCharacteristic.setSystemCharacteristic(foundCharacteristic)
+                            predefinedCharacteristic.onFound(char)
                         }
                     }
                 } ?: run {

@@ -325,8 +325,12 @@ open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertise
         }
 
         connectionHandler?.invoke(ConnectionState.completedGattDiscovery)
+        this.gattDiscoveryCompleted()
     }
 
+    open fun gattDiscoveryCompleted(){
+
+    }
     override fun onCharacteristicRead(
         gatt: BluetoothGatt?,
         characteristic: BluetoothGattCharacteristic?,
