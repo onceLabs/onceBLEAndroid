@@ -28,7 +28,7 @@ class OBCharacteristic {
 
     var value = SettableLiveData<ByteArray>(byteArrayOf(0)){ this.asyncWrite(it, false, null) }
         get() {
-            asyncRead { print(it) }
+            //asyncRead { print(it) }
             return field
         }
 
@@ -44,21 +44,19 @@ class OBCharacteristic {
     private var systemCharacteristic    : BluetoothGattCharacteristic?  = null
     private var gatt                    : WeakReference<OBGatt>?        = null
 
-    private var readAwait: Deferred<ByteArray>?   = null
-
     constructor(characteristicUUID: UUID, onFound: GattCompletionHandler<OBCharacteristic>, descriptors: Array<OBDescriptor>){
         this.uuid = characteristicUUID
         this.onFound = onFound
         this.descriptors = descriptors
     }
 
-    fun onChanged( onChangeHandler: ((ByteArray) -> Unit)){
-        this._onChanged = onChangeHandler
-    }
-
     constructor(characteristic: BluetoothGattCharacteristic, gatt: OBGatt): this(characteristic.uuid, {}, arrayOf()){
         this.gatt = WeakReference(gatt)
         this.systemCharacteristic = characteristic
+    }
+
+    fun onChanged( onChangeHandler: ((ByteArray) -> Unit)){
+        this._onChanged = onChangeHandler
     }
 
     fun setNotificationState( enabled: Boolean){
@@ -125,7 +123,7 @@ class OBCharacteristic {
     
     fun updated(){
         systemCharacteristic?.value?.let {
-            this.value.value = it
+            //this.value.value = it
             _onChanged?.invoke(it)
         }
     }

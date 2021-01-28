@@ -16,7 +16,9 @@ import com.oncelabs.onceble.core.peripheral.gattClient.OBGattServer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines
+import kotlin.coroutines.resume
 
 class Bluebird(private var device: BluetoothDevice?, private var context: Context) : OBPeripheral(device = device, context = context) {
 
@@ -73,10 +75,20 @@ class Bluebird(private var device: BluetoothDevice?, private var context: Contex
             Log.d("ExampleDevice", "$it")
         }
 
-        getGatt().bluebirdAccelerationCharacteristic?.let {
-            it.setNotificationState(true)
+        getGatt().bluebirdAccelerationCharacteristic?.setNotificationState(true)
+    }
+
+    suspend fun test(){
+
+        suspendCancellableCoroutine<ByteArray> { continuation ->
+            getGatt().bluebirdAccelerationCharacteristic?.asyncRead{
+                it?.let { bytes ->
+                    continuation.run { resume(bytes) }
+                }
+            }
         }
     }
+
     override fun newInstance(advData: OBAdvertisementData, peripheral: ScanResult): OBPeripheral {
         return Bluebird(peripheral.device ,this.context)
     }
@@ -88,7 +100,7 @@ class Bluebird(private var device: BluetoothDevice?, private var context: Contex
     fun setLEDColor(color: Int) {
         val colorBytes = byteArrayOf(0xf, 0xf, 0x0)
 
-        getGatt()?.bluebirdLedColorCharacteristic?.let {
+        getGatt().bluebirdLedColorCharacteristic?.let {
             it.asyncWrite(colorBytes, true) { ok ->
                 if (ok) {
                     Log.d("Bluebird", "LED color bytes sent!")

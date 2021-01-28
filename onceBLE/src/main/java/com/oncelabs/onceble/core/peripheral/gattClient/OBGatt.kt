@@ -75,7 +75,6 @@ open class OBGatt() {
                             print("OBGatt: assigned characteristic ${predefinedCharacteristic.uuid}")
                             val char = OBCharacteristic(foundCharacteristic, this)
                             this.characteristics[predefinedCharacteristic.uuid] = char
-                            // predefinedCharacteristic.setSystemCharacteristic(foundCharacteristic)
                             predefinedCharacteristic.onFound(char)
                         }
                     }
