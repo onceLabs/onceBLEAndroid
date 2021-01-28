@@ -7,7 +7,7 @@ class OBLog(enabled : Boolean){
 
     fun log(string: String){
        if(_enabled){
-           Log.i("OnceBLE", string)
+           Log.i("onceBLE", string)
        }
     }
 }
