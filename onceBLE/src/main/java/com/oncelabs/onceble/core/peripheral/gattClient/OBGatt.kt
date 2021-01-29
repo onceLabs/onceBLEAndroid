@@ -9,7 +9,7 @@ import java.util.*
 
 open class OBGatt() {
 
-    private var owner: OBPeripheral<out OBGatt>? = null
+    private var owner: OBPeripheral? = null
     var services: MutableMap<UUID, OBService> = mutableMapOf()
     var characteristics: MutableMap<UUID, OBCharacteristic> = mutableMapOf()
 
@@ -59,7 +59,7 @@ open class OBGatt() {
         characteristics[characteristic.uuid]?.updated()
     }
 
-    fun discovered(services: MutableList<BluetoothGattService>, gatt: BluetoothGatt, owner: OBPeripheral<out OBGatt>){
+    fun discovered(services: MutableList<BluetoothGattService>, gatt: BluetoothGatt, owner: OBPeripheral){
         this.owner = owner
         services.forEach { s ->
             this.services.forEach {
