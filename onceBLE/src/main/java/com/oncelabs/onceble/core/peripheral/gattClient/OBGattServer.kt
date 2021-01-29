@@ -4,8 +4,8 @@ import android.bluetooth.le.ScanResult
 import com.oncelabs.onceble.core.peripheral.OBAdvertisementData
 import com.oncelabs.onceble.core.peripheral.OBPeripheral
 
-interface OBGattServer<G: OBGatt> {
-    var obGatt: G?
+interface OBGattServer {
+    var obGatt: OBGatt?
     fun isTypeMatchFor(advData: OBAdvertisementData, peripheral: ScanResult): Boolean?
-    fun newInstance(advData: OBAdvertisementData, peripheral: ScanResult): OBPeripheral<G>?
+    fun newInstance(advData: OBAdvertisementData, peripheral: ScanResult): OBPeripheral?
 }
