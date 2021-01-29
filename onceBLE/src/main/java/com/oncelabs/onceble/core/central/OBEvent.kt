@@ -2,6 +2,8 @@ package com.oncelabs.onceble.core.central
 
 import com.oncelabs.onceble.core.peripheral.OBAdvertisementData
 import com.oncelabs.onceble.core.peripheral.OBPeripheral
+import com.oncelabs.onceble.core.peripheral.gattClient.OBGatt
+
 //typealias handler = (OBPeripheral) -> Unit
 //enum class _OBEvent {
 //    ConnectedPeripheral(handler),
@@ -12,14 +14,14 @@ import com.oncelabs.onceble.core.peripheral.OBPeripheral
 //    DiscoveredRegisteredType
 //}
 
-typealias OBPeripheralDiscoveredHandler = (OBPeripheral) -> Unit
+typealias OBPeripheralDiscoveredHandler = (OBPeripheral<out OBGatt>) -> Unit
 typealias BluetoothAdapterStateChangedHandler = (Int) -> Unit
 
 sealed class OBEvent{
-    class ConnectedPeripheral(val handler : ((OBPeripheral) -> Unit)? = null) : OBEvent()
-    class FailedToConnectPeripheral(val handler : ((OBPeripheral) -> Unit)? = null) : OBEvent()
-    class DisconnectedPeripheral(val handler : ((OBPeripheral) -> Unit)? = null) : OBEvent()
-    class DiscoveredPeripheral(val handler : ((OBPeripheral, OBAdvertisementData) -> Unit)? = null) : OBEvent()
+    class ConnectedPeripheral(val handler : ((OBPeripheral<out OBGatt>) -> Unit)? = null) : OBEvent()
+    class FailedToConnectPeripheral(val handler : ((OBPeripheral<out OBGatt>) -> Unit)? = null) : OBEvent()
+    class DisconnectedPeripheral(val handler : ((OBPeripheral<out OBGatt>) -> Unit)? = null) : OBEvent()
+    class DiscoveredPeripheral(val handler : ((OBPeripheral<out OBGatt>, OBAdvertisementData) -> Unit)? = null) : OBEvent()
     class BleReady(val handler : (() -> Unit)? = null) : OBEvent()
     class DiscoveredRegisteredType(val handler : ((Any, OBAdvertisementData) -> Unit)? = null) : OBEvent()
 

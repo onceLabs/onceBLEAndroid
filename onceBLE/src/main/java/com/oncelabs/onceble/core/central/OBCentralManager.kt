@@ -13,6 +13,7 @@ import com.oncelabs.onceble.core.peripheral.gattClient.OBGattServer
 import com.oncelabs.onceble.core.peripheral.OBAdvertisementData
 import com.oncelabs.onceble.core.peripheral.OBPeripheral
 import com.oncelabs.onceble.OBLog
+import com.oncelabs.onceble.core.peripheral.gattClient.OBGatt
 import java.util.*
 
 
@@ -28,14 +29,14 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
     private var handlers = mutableMapOf<Int,Any>()
 
     // Private
-    private var registeredPeripheralTypes: MutableList<OBGattServer> = mutableListOf()
+    private var registeredPeripheralTypes: MutableList<OBGattServer<out OBGatt>> = mutableListOf()
     private val context           = context
     private val REQUEST_ENABLE_BT          = 1
     private val REQUEST_COARSE_LOCATION    = 2
     private var scanState                  = ScanState.Idle
 
     //
-    private val leDeviceMap: MutableMap<String, OBPeripheral>  = mutableMapOf()
+    private val leDeviceMap: MutableMap<String, OBPeripheral<out OBGatt>>  = mutableMapOf()
     private val bluetoothAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private var bluetoothLeScanner: BluetoothLeScanner? = null
 
@@ -82,7 +83,7 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
         }
     }
 
-    fun register(customPeripheralType: OBGattServer){
+    fun <G : OBGatt> register(customPeripheralType: OBGattServer<G>){
         this.registeredPeripheralTypes.add(customPeripheralType)
     }
 
@@ -181,7 +182,7 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
                 // Do we already have this result
                 if (!leDeviceMap.containsKey(it)) {
                     obLog.log("OBCentralManager: New scan result $result")
-                    var peripheral: OBPeripheral? = null
+                    var peripheral: OBPeripheral<out OBGatt>? = null
                     for (type in registeredPeripheralTypes) {
                         if (type.isTypeMatchFor(obAdvertisementData, result)!!){
                             peripheral = type.newInstance(obAdvertisementData, result)
@@ -204,7 +205,7 @@ class OBCentralManager(loggingEnabled: Boolean, mockMode: Boolean = false, conte
                             context)
 
                         leDeviceMap[it]?.let { _obPeripheralInstance ->
-                            (handlers[OBEvent.raw(OBEvent.DiscoveredPeripheral())] as ((OBPeripheral, OBAdvertisementData) -> Unit))
+                            (handlers[OBEvent.raw(OBEvent.DiscoveredPeripheral())] as ((OBPeripheral<out OBGatt>, OBAdvertisementData) -> Unit))
                                 .invoke(_obPeripheralInstance, obAdvertisementData)
                         }
                     }

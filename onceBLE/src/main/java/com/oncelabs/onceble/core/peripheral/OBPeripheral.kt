@@ -21,17 +21,17 @@ typealias CharacteristicValueHandler = (BluetoothGattCharacteristic) -> Unit
 typealias ConnectionHandler = (ConnectionState) -> Unit
 
 
-open class OBPeripheral(device: BluetoothDevice? = null, scanResult: OBAdvertisementData? = null, context: Context): BluetoothGattCallback(), OBGattServer{
+open class OBPeripheral<G: OBGatt>(device: BluetoothDevice? = null, scanResult: OBAdvertisementData? = null, context: Context): BluetoothGattCallback(), OBGattServer<G>{
 
-    override var obGatt: OBGatt?
-        get() = OBGatt()
+    override var obGatt: G?
+        get() = OBGatt() as G
         set(value) {}
 
     override fun isTypeMatchFor(advData: OBAdvertisementData, peripheral: ScanResult): Boolean? {
         return  null
     }
 
-    override fun newInstance(advData: OBAdvertisementData, peripheral: ScanResult): OBPeripheral? {
+    override fun newInstance(advData: OBAdvertisementData, peripheral: ScanResult): OBPeripheral<G>? {
         return null
     }
 
