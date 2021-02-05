@@ -40,7 +40,16 @@ open class OBPeripheral<G: OBGatt>(device: BluetoothDevice? = null, scanResult: 
     private var pendingGATTRequest: OBGattRequest? = null
 
     // Status flags
+    var state: LiveData<ConnectionState> = MutableLiveData()
+        get() = _state
+        private set
+    private var _state:MutableLiveData<ConnectionState> = MutableLiveData()
+
     private var connectionState: ConnectionState = ConnectionState.disconnected
+        set(value) {
+            _state.postValue(value)
+            field = value
+        }
 
     // Handlers
     private var serviceDiscoveryHandler: ServiceDiscoveryHandler? = null
