@@ -338,8 +338,8 @@ open class OBPeripheral<G: OBGatt>(device: BluetoothDevice? = null, scanResult: 
     }
 
     open fun gattDiscoveryCompleted(){
-
     }
+
     override fun onCharacteristicRead(
         gatt: BluetoothGatt?,
         characteristic: BluetoothGattCharacteristic?,
