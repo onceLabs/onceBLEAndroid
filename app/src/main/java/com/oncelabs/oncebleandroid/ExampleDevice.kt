@@ -17,7 +17,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines
 import kotlin.coroutines.resume
 
 class Bluebird(private var device: BluetoothDevice?, private var context: Context) : OBPeripheral(device = device, context = context) {
@@ -29,6 +28,8 @@ class Bluebird(private var device: BluetoothDevice?, private var context: Contex
         var isBluebird = false
 
         Log.d("Bluebird Check", "${advData.name}")
+
+        println("\n${advData.searchableString}")
 
         advData.name.let { name ->
             when (name) {
