@@ -72,6 +72,7 @@ open class OBPeripheral<G: OBGatt>(device: BluetoothDevice? = null, scanResult: 
         scanResult?.let{
             setLatestAdvData(it)
         }
+        _state.value = ConnectionState.disconnected
     }
 
     @Synchronized
@@ -173,6 +174,7 @@ open class OBPeripheral<G: OBGatt>(device: BluetoothDevice? = null, scanResult: 
     //private var waitingForDisconnect = false
     fun disconnect(){
         println("Try to disconnect at peripheral")
+        gatt?.close()
         gatt?.disconnect()
         /*  Android doesn't disconnect reliably */
         //waitingForDisconnect = true
