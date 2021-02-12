@@ -29,7 +29,12 @@ data class OBAdvertisementData(val scanResult: ScanResult) {
 
     init{
         manufacturerData = sparseArrayToByteArray(scanResult.scanRecord?.manufacturerSpecificData)
-        searchableString = "${name ?: ""} $address ${byteArrayToString(manufacturerData)} ${serviceUuids ?: ""} ${if(connectable == true) "Yes" else "No"}"
+        searchableString = "${name ?: ""} " +
+                "$address " +
+                "${byteArrayToString(manufacturerData)} " +
+                "${serviceUuids ?: ""} " +
+                "${if(connectable == true) "Yes" else "No"} " +
+                "${serviceData ?: ""}"
     }
 
     val description: String get() {
