@@ -17,13 +17,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines
 import kotlin.coroutines.resume
 
-class Bluebird(private var device: BluetoothDevice?, private var context: Context) : OBPeripheral(device = device, context = context) {
+class Bluebird(private var device: BluetoothDevice?, private var context: Context) : OBPeripheral<BluebirdGatt>(device = device, context = context) {
 
     //override var customGatt: OBGatt? = BluebirdGatt(this)
-    override var obGatt: OBGatt? = BluebirdGatt()
+//    override var obGatt: OBGatt? = BluebirdGatt()
 
     override fun isTypeMatchFor(advData: OBAdvertisementData, peripheral: ScanResult): Boolean {
         var isBluebird = false
@@ -66,7 +65,7 @@ class Bluebird(private var device: BluetoothDevice?, private var context: Contex
 
         this.getGatt()
         GlobalScope.launch(Dispatchers.Main) {
-            getGatt().bluebirdAccelerationCharacteristic?.value?.observable()!!.observeForever {
+            getGatt().bluebirdAccelerationCharacteristic?.liveValue?.observable?.observeForever {
                 Log.d("ExampleDeivce", "Notification")
             }
         }
@@ -89,7 +88,7 @@ class Bluebird(private var device: BluetoothDevice?, private var context: Contex
         }
     }
 
-    override fun newInstance(advData: OBAdvertisementData, peripheral: ScanResult): OBPeripheral {
+    override fun newInstance(advData: OBAdvertisementData, peripheral: ScanResult): OBPeripheral<BluebirdGatt> {
         return Bluebird(peripheral.device ,this.context)
     }
 
