@@ -24,6 +24,15 @@ typealias ConnectionHandler = (ConnectionState) -> Unit
 open class OBPeripheral<G: OBGatt>(device: BluetoothDevice? = null, scanResult: OBAdvertisementData? = null, context: Context): BluetoothGattCallback(), OBGattServer<G>{
 
     override var obGatt: G? = null
+        get(){
+            if(field != null) {
+                return field
+            }
+
+            field = (OBGatt() as G)
+            return field
+        }
+
 
     override fun isTypeMatchFor(advData: OBAdvertisementData, peripheral: ScanResult): Boolean? {
         return  null
@@ -62,7 +71,7 @@ open class OBPeripheral<G: OBGatt>(device: BluetoothDevice? = null, scanResult: 
     val rssiHistorical = MutableLiveData<MutableList<Int>>()
 
     private var systemDevice: BluetoothDevice? = device
-    var gatt: BluetoothGatt? = null
+    private var gatt: BluetoothGatt? = null
 
     private var context = context
 
