@@ -23,9 +23,7 @@ typealias ConnectionHandler = (ConnectionState) -> Unit
 
 open class OBPeripheral<G: OBGatt>(device: BluetoothDevice? = null, scanResult: OBAdvertisementData? = null, context: Context): BluetoothGattCallback(), OBGattServer<G>{
 
-    override var obGatt: G?
-        get() = OBGatt() as G
-        set(value) {}
+    override var obGatt: G? = null
 
     override fun isTypeMatchFor(advData: OBAdvertisementData, peripheral: ScanResult): Boolean? {
         return  null
