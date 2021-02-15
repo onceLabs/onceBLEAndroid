@@ -62,7 +62,7 @@ open class OBPeripheral<G: OBGatt>(device: BluetoothDevice? = null, scanResult: 
     val rssiHistorical = MutableLiveData<MutableList<Int>>()
 
     private var systemDevice: BluetoothDevice? = device
-    private var gatt: BluetoothGatt? = null
+    var gatt: BluetoothGatt? = null
 
     private var context = context
 
